@@ -1,4 +1,4 @@
-# MP4 to MP3 Converter
+# VIDEO_TO_AUDIO
 
 動画ファイル（MP4など）をMP3音声ファイルに変換するモダンなPython CLIツールです。
 

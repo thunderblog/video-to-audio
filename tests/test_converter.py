@@ -2,7 +2,7 @@
 
 from pathlib import Path
 from typing import Any
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -287,7 +287,12 @@ class TestGetFileInfo:
         mock_ffmpeg.probe.return_value = {
             "streams": [
                 {"codec_type": "video", "codec_name": "h264"},
-                {"codec_type": "audio", "codec_name": "aac", "bit_rate": "128000", "sample_rate": "44100"},
+                {
+                    "codec_type": "audio",
+                    "codec_name": "aac",
+                    "bit_rate": "128000",
+                    "sample_rate": "44100",
+                },
             ],
             "format": {"size": "10485760", "duration": "120.5", "format_name": "mp4"},
         }

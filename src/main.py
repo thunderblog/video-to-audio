@@ -31,7 +31,7 @@ from rich.table import Table
 
 from src.converter import VideoToAudioConverter
 from src.exceptions import VideoConverterError
-from src.utils import get_video_files, is_supported_video_format
+from src.utils import SUPPORTED_VIDEO_FORMATS, get_video_files, is_supported_video_format
 
 # Windows環境でのUTF-8エンコーディング設定
 # PowerShellやコマンドプロンプトでは、デフォルトのコードページがShift-JISなどになっている場合があり、
@@ -97,7 +97,8 @@ def list_video_files_table(movie_dir: Path) -> list[Path]:
     video_files = get_video_files(movie_dir)
 
     if not video_files:
-        console.print("[yellow]movieディレクトリに動画ファイルが見つかりません。[/yellow]")
+        # 動画ファイルがない場合は何も表示せず空リストを返す
+        # （呼び出し側で適切なメッセージを表示する）
         return []
 
     table = Table(title=f"\nmovieディレクトリ内の動画ファイル ({len(video_files)}個)")
@@ -176,6 +177,14 @@ def convert_interactive(converter: VideoToAudioConverter) -> None:
         video_files = list_video_files_table(movie_dir)
 
         if not video_files:
+            # 動画ファイルがない場合の詳細なメッセージ
+            console.print()
+            print_error("movieディレクトリに変換可能な動画ファイルがありません。")
+            console.print("\n[cyan]対応している動画形式:[/cyan]")
+            console.print(f"  {', '.join(sorted(SUPPORTED_VIDEO_FORMATS))}")
+            console.print(
+                "\n[yellow]ヒント:[/yellow] movieディレクトリに動画ファイルを配置してから再度実行してください。"
+            )
             raise typer.Exit(0)
 
         # ユーザー入力
@@ -254,7 +263,14 @@ def convert(
     # ファイル一覧表示のみ
     if list_files:
         movie_dir = Path("movie")
-        list_video_files_table(movie_dir)
+        video_files = list_video_files_table(movie_dir)
+
+        if not video_files:
+            console.print()
+            print_error("movieディレクトリに変換可能な動画ファイルがありません。")
+            console.print("\n[cyan]対応している動画形式:[/cyan]")
+            console.print(f"  {', '.join(sorted(SUPPORTED_VIDEO_FORMATS))}")
+
         return
 
     try:
@@ -282,6 +298,9 @@ def convert(
             print_success("対話的モードで開始します")
             convert_interactive(converter)
 
+    except typer.Exit:
+        # typer.Exitはそのまま再発生（正常な終了処理）
+        raise
     except VideoConverterError as e:
         print_error(str(e))
         raise typer.Exit(1) from None

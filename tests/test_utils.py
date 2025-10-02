@@ -1,6 +1,5 @@
 """ユーティリティ関数のテスト"""
 
-import shutil
 import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -29,9 +28,7 @@ class TestFFmpegValidation:
         """FFmpegがインストールされている場合"""
         mock_run.return_value = MagicMock(returncode=0)
         assert check_ffmpeg_installed() is True
-        mock_run.assert_called_once_with(
-            ["ffmpeg", "-version"], capture_output=True, check=True
-        )
+        mock_run.assert_called_once_with(["ffmpeg", "-version"], capture_output=True, check=True)
 
     @patch("subprocess.run")
     def test_check_ffmpeg_installed_not_found(self, mock_run: MagicMock) -> None:
@@ -158,9 +155,7 @@ class TestDiskSpace:
     """ディスク容量チェックのテスト"""
 
     @patch("shutil.disk_usage")
-    def test_check_disk_space_sufficient(
-        self, mock_disk_usage: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_check_disk_space_sufficient(self, mock_disk_usage: MagicMock, tmp_path: Path) -> None:
         """十分な空き容量がある場合"""
         mock_disk_usage.return_value = MagicMock(
             free=1024 * 1024 * 1024  # 1GB
@@ -185,9 +180,7 @@ class TestDiskSpace:
         assert "必要: 100MB" in str(exc_info.value)
 
     @patch("shutil.disk_usage")
-    def test_check_disk_space_os_error(
-        self, mock_disk_usage: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_check_disk_space_os_error(self, mock_disk_usage: MagicMock, tmp_path: Path) -> None:
         """ディスク容量チェックでOSエラー"""
         mock_disk_usage.side_effect = OSError("Disk error")
 

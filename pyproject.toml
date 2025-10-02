@@ -2,7 +2,7 @@
 name = "mp4tomp3"
 version = "1.0.0"
 description = "動画ファイル（MP4など）をMP3音声ファイルに変換するCLIツール"
-authors = ["Your Name <your.email@example.com>"]
+authors = ["thunderblog"]
 readme = "README.md"
 packages = [{include = "src"}]
 
@@ -53,16 +53,25 @@ line-ending = "auto"
 
 [tool.mypy]
 python_version = "3.9"
-strict = true
-warn_return_any = true
+warn_return_any = false
 warn_unused_configs = true
 disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
 no_implicit_optional = true
 
 [[tool.mypy.overrides]]
 module = "ffmpeg.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "exceptions"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "converter"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "utils"
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

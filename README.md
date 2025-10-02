@@ -93,6 +93,33 @@ poetry run mp4tomp3
 - `all`: 全ファイルを一括変換
 - `0`または`exit`: 終了
 
+**実行例:**
+
+```
+$ poetry run mp4tomp3
+
+[INFO] MP3変換ツールを初期化中... (ビットレート: 192k)
+[SUCCESS] 初期化完了
+[SUCCESS] 対話的モードで開始します
+
+                    movieディレクトリ内の動画ファイル (3個)
+┏━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┓
+┃ 番号 ┃ ファイル名          ┃ サイズ   ┃
+┡━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━┩
+│  1 │ sample1.mp4        │ 15.3 MB │
+│  2 │ sample2.mov        │ 28.7 MB │
+│  3 │ presentation.mkv   │ 145.2 MB│
+└────┴────────────────────┴─────────┘
+
+[cyan]変換するファイルの番号を入力してください（0で終了、'all'で全ファイル変換）:[/cyan]
+番号: 1
+
+=== sample1.mp4 を変換中 ===
+[INFO] 変換開始: sample1.mp4
+[INFO] 変換完了: sample1.mp3
+[SUCCESS] 変換完了: mp3/sample1.mp3
+```
+
 ### コマンドラインモード
 
 ```bash
@@ -113,6 +140,33 @@ poetry run python mp4tomp3.py -l
 
 # ヘルプを表示
 poetry run python mp4tomp3.py --help
+```
+
+**実行例（ファイル情報付き変換）:**
+
+```
+$ poetry run mp4tomp3 -f movie/presentation.mp4 --info
+
+[INFO] MP3変換ツールを初期化中... (ビットレート: 192k)
+[SUCCESS] 初期化完了
+
+=== presentation.mp4 を変換中 ===
+
+                    ファイル情報
+┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┓
+┃ 項目          ┃ 値                  ┃
+┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━┩
+│ ファイル名    │ presentation.mp4    │
+│ サイズ        │ 145.2 MB           │
+│ 時間          │ 12:34              │
+│ 形式          │ mov,mp4,m4a,3gp,3g2│
+│ 動画コーデック│ h264               │
+│ 音声コーデック│ aac                │
+└──────────────┴────────────────────┘
+
+[INFO] 変換開始: presentation.mp4
+[INFO] 変換完了: presentation.mp3
+[SUCCESS] 変換完了: mp3/presentation.mp3
 ```
 
 ### オプション
@@ -190,4 +244,4 @@ mp4Tomp3/
 
 ## ライセンス
 
-このプロジェクトはオープンソースです。
+このプロジェクトは[MITライセンス](LICENSE)の下で公開されています。

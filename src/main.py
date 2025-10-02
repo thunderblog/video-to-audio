@@ -1,5 +1,25 @@
 #!/usr/bin/env python3
-"""MP4からMP3への変換メインプログラム"""
+"""MP4からMP3への変換メインプログラム
+
+このモジュールは、動画ファイルをMP3音声ファイルに変換するCLIツールのメインエントリーポイントです。
+
+主な機能:
+    - 対話的モード: movieディレクトリ内のファイルをテーブル形式で表示し、選択して変換
+    - コマンドラインモード: 特定のファイルを直接変換
+    - バッチ変換: 複数ファイルを一括変換
+    - ファイル情報表示: FFmpegを使用した詳細なメディア情報の取得
+    - Windows環境対応: UTF-8エンコーディングの自動設定
+
+使用例:
+    対話的モード:
+        $ poetry run mp4tomp3
+
+    特定ファイルを変換:
+        $ poetry run mp4tomp3 -f movie/video.mp4
+
+    ビットレート指定:
+        $ poetry run mp4tomp3 -f movie/video.mp4 -b 320k
+"""
 
 import sys
 from pathlib import Path
@@ -14,17 +34,22 @@ from exceptions import VideoConverterError
 from utils import get_video_files, is_supported_video_format
 
 # Windows環境でのUTF-8エンコーディング設定
+# PowerShellやコマンドプロンプトでは、デフォルトのコードページがShift-JISなどになっている場合があり、
+# 日本語ファイル名が文字化けする問題を防ぐため、UTF-8に強制設定します。
 if sys.platform == "win32":
     try:
         import ctypes
         import os
 
         # Windows APIでコンソールコードページをUTF-8に設定
+        # 65001はUTF-8のコードページ番号
         kernel32 = ctypes.windll.kernel32
-        kernel32.SetConsoleCP(65001)  # UTF-8 code page
-        kernel32.SetConsoleOutputCP(65001)
+        kernel32.SetConsoleCP(65001)  # 入力用コードページ
+        kernel32.SetConsoleOutputCP(65001)  # 出力用コードページ
 
-        # 標準入出力のエンコーディングをUTF-8に強制設定
+        # 標準入出力のエンコーディングをUTF-8に再設定
+        # reconfigure()はPython 3.7+で利用可能
+        # errors="replace"で、デコードできない文字を?などに置換し、クラッシュを防ぐ
         if hasattr(sys.stdout, "reconfigure"):
             sys.stdout.reconfigure(encoding="utf-8", errors="replace")
         if hasattr(sys.stderr, "reconfigure"):
@@ -32,11 +57,11 @@ if sys.platform == "win32":
         if hasattr(sys.stdin, "reconfigure"):
             sys.stdin.reconfigure(encoding="utf-8", errors="replace")
 
-        # 環境変数も設定（子プロセス用）
+        # 環境変数も設定（FFmpegなど子プロセスでも同じエンコーディングを使用）
         os.environ["PYTHONIOENCODING"] = "utf-8"
         os.environ["PYTHONUTF8"] = "1"  # Python 3.7以降でUTF-8モードを有効化
     except Exception:
-        # エラーが発生しても処理を続行
+        # エラーが発生しても処理を続行（環境によってはcryptoが使えない場合がある）
         pass
 
 app = typer.Typer(
@@ -259,13 +284,13 @@ def convert(
 
     except VideoConverterError as e:
         print_error(str(e))
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
     except KeyboardInterrupt:
         console.print("\n\n[yellow]ユーザーによって中断されました。[/yellow]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
     except Exception as e:
         print_error(f"予期しないエラーが発生しました: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
 
 def main() -> None:

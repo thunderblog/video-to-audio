@@ -1,4 +1,27 @@
-"""ユーティリティ関数"""
+"""ユーティリティ関数
+
+このモジュールは、動画変換ツール全体で使用される共通ユーティリティ関数を提供します。
+
+主な機能:
+    - FFmpeg検証: システムにFFmpegがインストールされているか確認
+    - ファイル検索: サポートされている動画ファイルの検索と一覧取得
+    - パス生成: 入力ファイルから出力ファイルパスを自動生成
+    - ディスク管理: 空き容量チェック、出力ディレクトリ作成
+    - ファイルサイズフォーマット: 人間が読みやすい形式への変換
+
+サポート形式:
+    .mp4, .avi, .mov, .mkv, .wmv, .flv, .webm, .m4v, .3gp, .ts, .mts, .m2ts
+
+使用例:
+    # FFmpegの存在確認
+    validate_ffmpeg()
+
+    # 動画ファイルの検索
+    video_files = get_video_files(Path("movie"))
+
+    # 出力パスの生成
+    output_path = get_output_path(Path("input.mp4"), Path("output"))
+"""
 
 import shutil
 import subprocess

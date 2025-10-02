@@ -1,7 +1,29 @@
-"""動画から音声への変換機能"""
+"""動画から音声への変換機能
+
+このモジュールは、FFmpegを使用して動画ファイルをMP3音声ファイルに変換するコア機能を提供します。
+
+主要クラス:
+    VideoToAudioConverter: 動画→音声変換を行うメインクラス
+
+変換仕様:
+    - コーデック: libmp3lame（高品質MP3エンコーダー）
+    - サンプリングレート: 44.1kHz（CD品質）
+    - ビットレート: カスタマイズ可能（デフォルト192k）
+
+エラーハンドリング:
+    FFmpegのエラー出力を解析し、以下のような具体的な例外に変換:
+    - PermissionError: ファイルアクセス権限エラー
+    - FileInUseError: ファイル使用中エラー
+    - InsufficientSpaceError: ディスク容量不足エラー
+    - ConversionError: その他の変換エラー
+
+使用例:
+    converter = VideoToAudioConverter(output_dir=Path("mp3"), bitrate="320k")
+    output_path = converter.convert_file(Path("movie/video.mp4"))
+"""
 
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 import ffmpeg
 
@@ -44,7 +66,7 @@ class VideoToAudioConverter:
         create_output_directory(self.output_dir)
 
     def convert_file(
-        self, input_path: Path, progress_callback: Callable[[str], None] | None = None
+        self, input_path: Path, progress_callback: Optional[Callable[[str], None]] = None
     ) -> Path:
         """
         単一ファイルを変換する
@@ -79,9 +101,12 @@ class VideoToAudioConverter:
         output_path = get_output_path(input_path, self.output_dir)
 
         # 空き容量チェック
+        # 出力前にディスク容量が十分か確認して、変換途中での容量不足を防ぐ
         try:
             input_size_mb = input_path.stat().st_size / (1024 * 1024)
-            # 音声ファイルは通常動画ファイルの1/10程度のサイズ + マージン
+            # 音声のみのMP3ファイルは、動画ファイルと比較して大幅にサイズが小さくなる
+            # 経験則として動画ファイルの10%程度 + 安全マージン50%で推定
+            # 最小でも10MBは確保（短い動画でも安全に変換できるようにする）
             estimated_output_size = max(int(input_size_mb * 0.15), 10)
             check_disk_space(output_path, estimated_output_size)
         except OSError as e:
@@ -111,18 +136,27 @@ class VideoToAudioConverter:
                 progress_callback(f"変換完了: {output_path.name}")
 
         except ffmpeg.Error as e:
+            # FFmpegのエラー出力をデコード（標準エラー出力に詳細が含まれる）
             error_message = e.stderr.decode("utf-8") if e.stderr else str(e)
 
-            # エラーメッセージから具体的な問題を特定
+            # エラーメッセージの内容を解析して、具体的な例外クラスにマッピング
+            # これにより、呼び出し側で適切なエラーハンドリングが可能になる
+
+            # ファイルアクセス権限エラー（Unix/Linuxでは"Permission denied"、Windowsでは"Access is denied"）
             if "Permission denied" in error_message or "Access is denied" in error_message:
                 raise PermissionError("ファイルアクセス権限がありません", str(input_path)) from e
+
+            # ファイルが他のプロセスで使用中（主にWindows環境で発生）
             elif (
-                "Resource busy" in error_message
-                or "being used by another process" in error_message
+                "Resource busy" in error_message or "being used by another process" in error_message
             ):
                 raise FileInUseError("ファイルが他のプロセスで使用中です", str(input_path)) from e
+
+            # ディスク容量不足エラー
             elif "No space left" in error_message:
                 raise InsufficientSpaceError("容量が不足しています") from e
+
+            # 上記以外の変換エラー（コーデックエラー、破損ファイルなど）
             else:
                 raise ConversionError(
                     f"変換中にエラーが発生しました: {error_message}", str(input_path)
@@ -147,13 +181,13 @@ class VideoToAudioConverter:
             probe = ffmpeg.probe(str(file_path))
 
             # 動画情報を取得
-            video_info = next(
+            video_info: dict[str, Any] = next(
                 (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
                 {},
             )
 
             # 音声情報を取得
-            audio_info = next(
+            audio_info: dict[str, Any] = next(
                 (stream for stream in probe["streams"] if stream["codec_type"] == "audio"),
                 {},
             )

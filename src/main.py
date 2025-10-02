@@ -29,9 +29,9 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from converter import VideoToAudioConverter
-from exceptions import VideoConverterError
-from utils import get_video_files, is_supported_video_format
+from src.converter import VideoToAudioConverter
+from src.exceptions import VideoConverterError
+from src.utils import get_video_files, is_supported_video_format
 
 # Windows環境でのUTF-8エンコーディング設定
 # PowerShellやコマンドプロンプトでは、デフォルトのコードページがShift-JISなどになっている場合があり、

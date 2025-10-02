@@ -27,7 +27,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from exceptions import FFmpegNotFoundError, InsufficientSpaceError
+from src.exceptions import FFmpegNotFoundError, InsufficientSpaceError
 
 # サポートする動画形式
 SUPPORTED_VIDEO_FORMATS = {

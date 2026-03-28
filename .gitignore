@@ -46,3 +46,6 @@ poetry.lock
 movie/
 mp3/
 FLOW.md
+
+# Claude Code
+.claude/
